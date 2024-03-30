@@ -141,8 +141,138 @@ public class M6800MachineInstruction extends JFrame implements ActionListener{
                 this.errorLabel.setText("Illegal size for assembly instruction");
             }else{
                 String dx = token.nextToken();
-                if (dx.charAt(0) ==)
+            if (dx.charAt(0) == 'D' && dx.charAt(1) >= '0' && dx.charAt(1) <= '7') {
+               String dy = token.nextToken();
+               if (dy.charAt(0) == 'D' && dy.charAt(1) >= '0' && dy.charAt(1) <= '7') {
+                  int sizeCode;
+                  int binary;
+                  if (object.equals("ADD")) {
+                     binary = 0b1101 << 12;
+                     sizeCode = "BWL".indexOf(size);
+                     if (sizeCode < 0) {
+                        this.errorLabel.setText("Illegal size for assembly instruction");
+                        return;
+                     }
+
+                     binary = binary | sizeCode << 6;
+                  } else if (object.equals("SUB")) {
+                     binary = 0b1001 << 12;
+                     sizeCode = "BWL".indexOf(size);
+                     if (sizeCode < 0) {
+                        this.errorLabel.setText("Illegal size for assembly instruction");
+                        return;
+                     }
+
+                     binary = binary | sizeCode << 6;
+                  } else if (object.equals("MULS")) {
+                     binary = 49600;
+                     if (!size.equals("W")) {
+                        this.errorLabel.setText("Illegal size for assembly instruction");
+                        return;
+                     }
+                  } else {
+                     if (!object.equals("DIVS")) {
+                        this.errorLabel.setText("Illegal operation for assembly instruction");
+                        return;
+                     }
+
+                     binary = 33216;
+                     if (!size.equals("W")) {
+                        this.errorLabel.setText("Illegal size for assembly instruction");
+                        return;
+                     }
+                  }
+
+                  binary |= Integer.parseInt("" + dx.charAt(1)) << 9;
+                  binary |= Integer.parseInt("" + dy.charAt(1));
+                  this.binaryInstruction.setText(this.shortToBinary((short)binary));
+                  this.hexInstruction.setText(this.shortToHex((short)binary));
+               } else {
+                  this.errorLabel.setText("Illegal destination register for assembly instruction");
+               }
+             } else {
+               this.errorLabel.setText("Illegal source register for assembly instruction");
+                }
             }
         }
     }
-}
+
+    void decodeBin() {
+		this.assemblerInstruction.setText("");
+      this.hexInstruction.setText("");
+      String s = this.binaryInstruction.getText().trim();
+      if (s.length() != 16) {
+         this.errorLabel.setText("Binary number must be 16 bits");
+      } else {
+        int binary;
+        try {
+            binary = Integer.parseInt(s, 2);
+        } catch (Exception var4) {
+            this.errorLabel.setText("Illegal binary number");
+            return;
+        }
+
+        this.hexInstruction.setText(this.shortToHex((short)binary));
+        this.decode(binary);
+      }
+	}
+
+	void decodeHex() {
+	this.assemblerInstruction.setText("");
+    this.binaryInstruction.setText("");
+    String s = this.hexInstruction.getText().trim();
+    if (s.length() != 4) {
+        this.errorLabel.setText("Hex number must be 4 digits");
+      } else {
+         int binary;
+         try {
+            binary = Integer.parseInt(s, 16);
+         } catch (Exception var4) {
+            this.errorLabel.setText("Illegal hex number");
+            return;
+         }
+
+         this.binaryInstruction.setText(this.shortToBinary((short)binary));
+         this.decode(binary);
+      }
+	}
+
+	void decode(int binary) {
+		if ((binary & -65536) == 0 && (binary & 56) == 0) {
+		   String assem = "";
+		   if ((binary & '\uf000') == 53248) {
+			  assem = "ADD";
+		   } else if ((binary & '\uf000') == 36864) {
+			  assem = "SUB";
+		   } else if ((binary & '\uf1c0') == 49600) {
+			  assem = "MULS.W ";
+		   } else {
+			  if ((binary & '\uf1c0') != 33216) {
+				 this.errorLabel.setText("Illegal instruction");
+				 return;
+			  }
+  
+			  assem = "DIVS.W ";
+		   }
+  
+		   if (!assem.equals("ADD") && !assem.equals("SUB")) {
+			  if ((binary >> 6 & 7) != 7) {
+				 this.errorLabel.setText("Illegal size");
+				 return;
+			  }
+		   } else {
+			  if ((binary >> 6 & 7) > 2) {
+				 this.errorLabel.setText("Illegal size");
+				 return;
+			  }
+  
+			  assem = assem + "." + "BWL".charAt(binary >> 6 & 7) + " ";
+		   }
+  
+		   assem = assem + "D" + (binary >> 9 & 7) + ",D" + (binary & 7);
+		   this.assemblerInstruction.setText(assem);
+		} else {
+		   this.errorLabel.setText("Illegal instruction");
+		}
+	 }
+} 

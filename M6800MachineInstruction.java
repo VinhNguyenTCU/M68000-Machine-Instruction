@@ -136,7 +136,13 @@ public class M6800MachineInstruction extends JFrame implements ActionListener{
         if (!object.equals("ADD") && !object.equals("SUB") && !object.equals("MULS") && !object.equals("DIVS")){
             this.errorLabel.setText("Illegal operation for assembly instruction");
         }else{
-            String size
+            String size = token.nextToken();
+            if (!size.equals("B") && !size.equals("W") && !size.equals("L")){
+                this.errorLabel.setText("Illegal size for assembly instruction");
+            }else{
+                String dx = token.nextToken();
+                if (dx.charAt(0) ==)
+            }
         }
     }
 }

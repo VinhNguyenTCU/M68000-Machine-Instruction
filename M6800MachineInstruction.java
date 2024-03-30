@@ -75,7 +75,7 @@ public class M6800MachineInstruction extends JFrame implements ActionListener{
 
     public static void main(String[] args) {
         M6800MachineInstruction window = new M6800MachineInstruction();
-        window.isVisible();
+        window.setVisible(true);
     }
 
     String shortToHex(short x){
